@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt } from 'passport-jwt';
 import { SupabaseAuthStrategy } from 'nestjs-supabase-auth';
+import appConfig from '../config/app.config';
+import { AppConfig } from 'src/config/config.type';
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(
@@ -10,10 +12,10 @@ export class SupabaseStrategy extends PassportStrategy(
 ) {
   public constructor() {
     super({
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY,
+      supabaseUrl: (appConfig() as AppConfig).supabaseUrl,
+      supabaseKey: (appConfig() as AppConfig).supabaseKey,
       supabaseOptions: {},
-      supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET,
+      supabaseJwtSecret: (appConfig() as AppConfig).supabaseJwtSecret,
       extractor: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }
