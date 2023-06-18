@@ -32,14 +32,12 @@ export default registerAs<AppConfig>('app', () => {
     nodeEnv: process.env.NODE_ENV || 'development',
     name: process.env.APP_NAME || 'app',
     workingDirectory: process.env.PWD || process.cwd(),
-    backendDomain: process.env.BACKEND_DOMAIN ?? 'http://localhost',
     port: process.env.APP_PORT
       ? parseInt(process.env.APP_PORT, 10)
       : process.env.PORT
       ? parseInt(process.env.PORT, 10)
       : 3000,
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET,
-    supabaseKey: process.env.SUPABASE_KEY,
+    wpApiUrl: process.env.WP_API_URL,
+    wpApiToken: process.env.WP_API_TOKEN,
   };
 });
