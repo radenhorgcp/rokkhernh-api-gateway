@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CurrentUser } from 'src/decorator/current-user.decorator';
 import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
@@ -18,8 +18,8 @@ export class UserController {
     return this.userService.me(Number(user.uid));
   }
 
-  @Get('/fakeToken')
-  async fakeToken(): Promise<any> {
-    return this.userService.fakeToken();
+  @Get('/fakeToken:id')
+  async fakeToken(@Param('id') id): Promise<any> {
+    return this.userService.fakeToken(id);
   }
 }

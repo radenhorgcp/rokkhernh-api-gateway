@@ -44,8 +44,8 @@ export class UserService {
     );
   }
 
-  async fakeToken(): Promise<any> {
-    const token = await admin.auth().createCustomToken('25');
+  async fakeToken(id: any): Promise<any> {
+    const token = await admin.auth().createCustomToken(`${id}`);
     return this.httpService
       .post(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCHQl-fCTvhbPjIhY_8mUMAf7BNIP-BirA`,
