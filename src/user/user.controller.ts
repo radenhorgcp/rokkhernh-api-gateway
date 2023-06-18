@@ -18,7 +18,7 @@ export class UserController {
     return this.userService.me(Number(user.uid));
   }
 
-  @Get('/fakeToken:id')
+  @Get('/fakeToken/:id')
   async fakeToken(@Param('id') id): Promise<any> {
     return this.userService.fakeToken(id);
   }
