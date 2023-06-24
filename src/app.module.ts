@@ -12,6 +12,8 @@ import { UserService } from './user/user.service';
 import { PostService } from './post/post.service';
 import { PostController } from './post/post.controller';
 import { PostModule } from './post/post.module';
+import { GetStreamService } from './getstream/getstream.service';
+import { GetStreamModule } from './getstream/getstream.module';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const https = require('https');
 
@@ -40,8 +42,9 @@ const https = require('https');
     AuthModule,
     UserModule,
     PostModule,
+    GetStreamModule,
   ],
   controllers: [AppController, UserController, PostController],
-  providers: [AppService, UserService, PostService],
+  providers: [AppService, UserService, PostService, GetStreamService],
 })
 export class AppModule {}

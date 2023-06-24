@@ -37,6 +37,16 @@ export class PostController {
     return this.postService.posts();
   }
 
+  @Get('/posts-v2')
+  async postsV2(): Promise<any> {
+    return this.postService.postsV2();
+  }
+
+  @Post('/post-v2')
+  async createPostV2(): Promise<any> {
+    return this.postService.createPostsV2();
+  }
+
   @Get('/posts/:id')
   async getPostById(@Param('id') id): Promise<any> {
     return this.postService.getPostById(id);

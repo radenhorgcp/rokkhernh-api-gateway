@@ -39,5 +39,8 @@ export default registerAs<AppConfig>('app', () => {
       : 3000,
     wpApiUrl: process.env.WP_API_URL,
     wpApiToken: process.env.WP_API_TOKEN,
+    getStreamAppId: process.env.GETSTREAM_APP_ID,
+    getStreamApiKey: process.env.GETSTREAM_API_KEY,
+    getStreamApiSecret: process.env.GETSTREAM_API_SECRET,
   };
 });
