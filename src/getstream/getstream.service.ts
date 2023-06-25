@@ -9,9 +9,14 @@ export class GetStreamService {
     (appConfig() as AppConfig).getStreamApiKey,
     (appConfig() as AppConfig).getStreamApiSecret,
     (appConfig() as AppConfig).getStreamAppId,
+    { browser: false },
   );
 
   getClient(): stream.StreamClient<stream.DefaultGenerics> {
     return this.client;
+  }
+
+  getUserToken(id: string): string {
+    return this.client.createUserToken(id);
   }
 }

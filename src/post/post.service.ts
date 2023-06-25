@@ -1,8 +1,17 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
-import { Observable, map, catchError, concatMap } from 'rxjs';
+import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
+import { Observable, map, catchError, concatMap, from } from 'rxjs';
 import { GetStreamService } from 'src/getstream/getstream.service';
+import appConfig from 'src/config/app.config';
+import { AppConfig } from 'src/config/config.type';
+import {
+  Activity,
+  DefaultGenerics,
+  FeedAPIResponse,
+  ReactionFilterAPIResponse,
+} from 'getstream';
 
 @Injectable()
 export class PostService {
@@ -11,7 +20,7 @@ export class PostService {
     private readonly getStreamService: GetStreamService,
   ) {}
 
-  createPost(id: any, req: any): Observable<AxiosResponse<any>> {
+  createPostWp(id: any, req: any): Observable<AxiosResponse<any>> {
     req.author = id;
     return this.httpService.post(`/wp-json/wp/v2/posts`, req).pipe(
       map((axiosResponse: AxiosResponse) => {
@@ -23,8 +32,8 @@ export class PostService {
     );
   }
 
-  deletePostById(id: any, authorId: any): Observable<any> {
-    return this.getPostById(id).pipe(
+  deletePostByIdWp(id: any, authorId: any): Observable<any> {
+    return this.getPostByIdWp(id).pipe(
       concatMap((res: any) => {
         if (res?.author && res.author == authorId) {
           return this.httpService.delete(`/wp-json/wp/v2/posts/${id}`).pipe(
@@ -41,8 +50,8 @@ export class PostService {
     );
   }
 
-  updatePostById(id: any, authorId: any, body: any): Observable<any> {
-    return this.getPostById(id).pipe(
+  updatePostByIdWp(id: any, authorId: any, body: any): Observable<any> {
+    return this.getPostByIdWp(id).pipe(
       concatMap((res: any) => {
         if (res?.author && res.author == authorId) {
           return this.httpService.put(`/wp-json/wp/v2/posts/${id}`, body).pipe(
@@ -59,7 +68,7 @@ export class PostService {
     );
   }
 
-  getPostById(id: any): Observable<AxiosResponse<any>> {
+  getPostByIdWp(id: any): Observable<AxiosResponse<any>> {
     return this.httpService.get(`/wp-json/wp/v2/posts/${id}?_embed`).pipe(
       map((axiosResponse: AxiosResponse) => {
         return axiosResponse.data;
@@ -70,7 +79,7 @@ export class PostService {
     );
   }
 
-  posts(): Observable<AxiosResponse<any>> {
+  postsWp(): Observable<AxiosResponse<any>> {
     return this.httpService.get(`/wp-json/wp/v2/posts?_embed`).pipe(
       map((axiosResponse: AxiosResponse) => {
         return axiosResponse.data;
@@ -81,27 +90,7 @@ export class PostService {
     );
   }
 
-  async postsV2(): Promise<any> {
-    const bob007 = this.getStreamService.getClient().feed('user', 'bob007');
-    const results = await bob007.get({ limit: 10 });
-    return results;
-  }
-
-  async createPostsV2(): Promise<any> {
-    const bob007 = this.getStreamService.getClient().feed('user', 'bob007');
-    const results = await bob007.addActivity({
-      actor: 'bob007',
-      verb: 'add',
-      object: 'picture:10',
-      foreign_id: 'picture:10',
-      message: 'Beautiful bird!9999',
-      image:
-        'https://singapore.stream-io-cdn.com/1254992/images/8e5bea91-9776-428b-bc62-cdb6a160641e.test.png?Key-Pair-Id=APKAIHG36VEWPDULE23Q&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9zaW5nYXBvcmUuc3RyZWFtLWlvLWNkbi5jb20vMTI1NDk5Mi9pbWFnZXMvOGU1YmVhOTEtOTc3Ni00MjhiLWJjNjItY2RiNmExNjA2NDFlLnRlc3QucG5nPypvaD0xMjYqb3c9MjY2KiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTY4ODY5MDk4M319fV19&Signature=mBcJGBoGi5IHKw5yfcBoDLJ3gwxjP-nj919QCheyZr-m2GD4VhrU~QsDznHlNQQyhbVDL6MYjicEoEP~wgE-jn2jnKF5MAX-mVG1w5FhjHIt23ul3innU~2lji3P9gHFGMlIwbbNVa6ZD8tt5lYwHZJxa8kNnkO5kt-OnC53o-Xlz-o6kVUiV~HyLhBY7pQIiqzawcA6aZiI~GJAtdIGrEh5adLV-HRMW8qQg0eVAZf4hAr8kBfjMzd85OkY2Htypa-9ABd1-3O~32YhvRRQVDZkFvIBsYHpzG6KWZ4WmYdShf-vKgqqRFFfiIB908Ff5Ihuq016mYb-7LHtc3ZsHw__&oh=126&ow=266',
-    });
-    return results;
-  }
-
-  userPosts(id: any): Observable<AxiosResponse<any>> {
+  userPostsWp(id: any): Observable<AxiosResponse<any>> {
     return this.httpService
       .get(`/wp-json/wp/v2/posts?_embed&author=${id}`)
       .pipe(
@@ -112,5 +101,169 @@ export class PostService {
           throw new HttpException(e.response.data, e.response.status);
         }),
       );
+  }
+
+  async posts(): Promise<any> {
+    const global = this.getStreamService.getClient().feed('flat', 'global');
+    return from(
+      global.get({
+        limit: 10,
+        withReactionCounts: true,
+        withRecentReactions: true,
+        withOwnReactions: true,
+      }),
+    ).pipe(
+      map((res: FeedAPIResponse<DefaultGenerics>) => {
+        return res.results;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async createImagePost(
+    file: Express.Multer.File,
+    user: DecodedIdToken,
+  ): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const FormData = require('form-data');
+    const formData = new FormData();
+    formData.append('file', file.buffer, { filename: file.originalname });
+    const headers = {
+      ...formData.getHeaders(),
+      'Content-Length': formData.getLengthSync(),
+      Authorization: user.getStreamToken,
+    };
+    return this.httpService
+      .post(
+        `${
+          (appConfig() as AppConfig).getStreamAppUrl
+        }/api/v1.0/images/?api_key=${
+          (appConfig() as AppConfig).getStreamApiKey
+        }`,
+        formData,
+        { headers },
+      )
+      .pipe(
+        map((axiosResponse: AxiosResponse) => {
+          return axiosResponse.data;
+        }),
+        catchError((e) => {
+          throw new HttpException(e.response.data, e.response.status);
+        }),
+      );
+  }
+
+  async createPosts(id: string, req: any): Promise<any> {
+    const user = this.getStreamService.getClient().user(id);
+    const global = this.getStreamService.getClient().feed('user', id);
+    return from(
+      global.addActivity({
+        actor: user,
+        verb: 'add',
+        foreign_id: id,
+        to: ['flat:global'],
+        ...req,
+      }),
+    ).pipe(
+      map((res: Activity<DefaultGenerics>) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async likePost(id: string, user: DecodedIdToken): Promise<any> {
+    return from(
+      this.getStreamService.getClient().reactions.filter({
+        activity_id: id,
+        kind: 'like',
+      }),
+    ).pipe(
+      concatMap((res: ReactionFilterAPIResponse<DefaultGenerics>) => {
+        const foundIndex = res.results.findIndex((v) => v.user_id == user.uid);
+        if (foundIndex >= 0) {
+          const myLike = res.results[foundIndex];
+          return from(
+            this.getStreamService.getClient().reactions.delete(myLike.id),
+          ).pipe(
+            map((res: any) => {
+              return res;
+            }),
+            catchError((e) => {
+              throw new HttpException(e.response.data, e.response.status);
+            }),
+          );
+        }
+        return from(
+          this.getStreamService
+            .getClient()
+            .reactions.add('like', id, {}, { userId: user.uid }),
+        ).pipe(
+          map((res: any) => {
+            return res;
+          }),
+          catchError((e) => {
+            throw new HttpException(e.response.data, e.response.status);
+          }),
+        );
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async commentPost(id: string, userId: string, body: any): Promise<any> {
+    return from(
+      this.getStreamService.getClient().reactions.add('comment', id, body, {
+        userId,
+      }),
+    ).pipe(
+      map((res: any) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async deletePostById(id: string, userId: string): Promise<any> {
+    return from(
+      this.getStreamService
+        .getClient()
+        .feed('user', id)
+        .removeActivity({ foreign_id: userId }),
+    ).pipe(
+      map((res: any) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async userPosts(id: string): Promise<any> {
+    const global = this.getStreamService.getClient().feed('user', id);
+    return from(
+      global.get({
+        limit: 10,
+        withReactionCounts: true,
+        withRecentReactions: true,
+        withOwnReactions: true,
+      }),
+    ).pipe(
+      map((res: FeedAPIResponse<DefaultGenerics>) => {
+        return res.results;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
   }
 }

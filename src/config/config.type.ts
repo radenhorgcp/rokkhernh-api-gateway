@@ -5,6 +5,7 @@ export type AppConfig = {
   port: number;
   wpApiUrl: string;
   wpApiToken: string;
+  getStreamAppUrl: string;
   getStreamAppId: string;
   getStreamApiKey: string;
   getStreamApiSecret: string;

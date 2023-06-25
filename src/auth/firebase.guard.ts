@@ -5,9 +5,11 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import { GetStreamService } from 'src/getstream/getstream.service';
 
 @Injectable()
 export class FirebaseGuard implements CanActivate {
+  constructor(private readonly getStreamService: GetStreamService) {}
   async canActivate(context: ExecutionContext) {
     try {
       const req = context.switchToHttp().getRequest();
@@ -23,10 +25,11 @@ export class FirebaseGuard implements CanActivate {
         .catch((e) => {
           throw new ForbiddenException(e);
         });
+      const getStreamToken = this.getStreamService.getUserToken(user.uid);
+      user.getStreamToken = getStreamToken;
       req.user = user;
       return req;
     } catch (e) {
-      // @ts-ignore
       throw new ForbiddenException(e.response.message);
     }
   }
