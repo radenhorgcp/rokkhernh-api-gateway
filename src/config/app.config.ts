@@ -43,5 +43,7 @@ export default registerAs<AppConfig>('app', () => {
     getStreamAppId: process.env.GETSTREAM_APP_ID,
     getStreamApiKey: process.env.GETSTREAM_API_KEY,
     getStreamApiSecret: process.env.GETSTREAM_API_SECRET,
+    elasticSearchNode: process.env.ELASTICSEARCH_NODE,
+    elasticSearchIndex: process.env.ELASTICSEARCH_INDEX,
   };
 });

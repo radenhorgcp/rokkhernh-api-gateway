@@ -7,12 +7,14 @@ import { CreateRequest } from 'firebase-admin/lib/auth/auth-config';
 import { GetStreamService } from 'src/getstream/getstream.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { DefaultGenerics, StreamUser } from 'getstream';
+import { IndexType, SearchService } from 'src/search/search.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly httpService: HttpService,
     private readonly getStreamService: GetStreamService,
+    readonly esService: SearchService,
   ) {}
 
   registerUserWp(req: any): Observable<AxiosResponse<any>> {
@@ -81,6 +83,7 @@ export class UserService {
     }
     return from(admin.auth().createUser(payload)).pipe(
       concatMap(() => {
+        delete req['password'];
         return from(
           this.getStreamService
             .getClient()
@@ -88,6 +91,7 @@ export class UserService {
             .getOrCreate(req as any),
         ).pipe(
           map((user: StreamUser<DefaultGenerics>) => {
+            this.esService.createIndex(user, IndexType.USER);
             return user.data;
           }),
           catchError((e) => {

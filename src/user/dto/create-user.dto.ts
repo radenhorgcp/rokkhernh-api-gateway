@@ -11,6 +11,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   username: string;
 
+  @IsString()
+  @IsNotEmpty()
+  fullName: string;
+
   @IsEnum(UserProvider)
   @IsNotEmpty()
   provider: UserProvider;

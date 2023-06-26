@@ -129,4 +129,10 @@ export class PostController {
   ): Promise<any> {
     return this.postService.deletePostById(id, user.uid);
   }
+
+  @Get('/searchPosts')
+  @UseInterceptors(TransformInterceptor)
+  async searchPosts(@Body() body: any): Promise<any> {
+    return this.postService.searchPosts(body);
+  }
 }

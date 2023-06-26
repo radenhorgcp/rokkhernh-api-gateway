@@ -10,14 +10,17 @@ import {
   Activity,
   DefaultGenerics,
   FeedAPIResponse,
+  PersonalizationAPIResponse,
   ReactionFilterAPIResponse,
 } from 'getstream';
+import { IndexType, SearchService } from 'src/search/search.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly httpService: HttpService,
     private readonly getStreamService: GetStreamService,
+    readonly esService: SearchService,
   ) {}
 
   createPostWp(id: any, req: any): Observable<AxiosResponse<any>> {
@@ -168,6 +171,7 @@ export class PostService {
       }),
     ).pipe(
       map((res: Activity<DefaultGenerics>) => {
+        this.esService.createIndex(res, IndexType.ACTIVITY);
         return res;
       }),
       catchError((e) => {
@@ -263,6 +267,22 @@ export class PostService {
       }),
       catchError((e) => {
         throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async searchPosts(req: any): Promise<any> {
+    const params = { ...req };
+    return from(
+      this.getStreamService
+        .getClient()
+        .personalization.get('discovery_feed', params),
+    ).pipe(
+      map((res: PersonalizationAPIResponse<DefaultGenerics>) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status_code);
       }),
     );
   }

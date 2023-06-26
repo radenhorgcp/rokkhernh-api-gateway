@@ -9,6 +9,8 @@ export type AppConfig = {
   getStreamAppId: string;
   getStreamApiKey: string;
   getStreamApiSecret: string;
+  elasticSearchNode: string;
+  elasticSearchIndex: string;
 };
 
 export type AuthConfig = {
