@@ -7,10 +7,12 @@ import { GetStreamService } from 'src/getstream/getstream.service';
 import appConfig from 'src/config/app.config';
 import { AppConfig } from 'src/config/config.type';
 import {
+  APIResponse,
   Activity,
   DefaultGenerics,
   FeedAPIResponse,
-  PersonalizationAPIResponse,
+  FollowStatsAPIResponse,
+  GetFollowAPIResponse,
   ReactionFilterAPIResponse,
 } from 'getstream';
 import { IndexType, SearchService } from 'src/search/search.service';
@@ -271,18 +273,89 @@ export class PostService {
     );
   }
 
-  async searchPosts(req: any): Promise<any> {
-    const params = { ...req };
+  async followingPosts(id: string): Promise<any> {
+    const global = this.getStreamService.getClient().feed('timeline', id);
     return from(
-      this.getStreamService
-        .getClient()
-        .personalization.get('discovery_feed', params),
+      global.get({
+        limit: 10,
+        withReactionCounts: true,
+        withRecentReactions: true,
+        withOwnReactions: true,
+      }),
     ).pipe(
-      map((res: PersonalizationAPIResponse<DefaultGenerics>) => {
+      map((res: FeedAPIResponse<DefaultGenerics>) => {
+        return res.results;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async userFollowerFeed(id: string): Promise<any> {
+    const global = this.getStreamService.getClient().feed('user', id);
+    return from(
+      global.followers({
+        limit: 10,
+      }),
+    ).pipe(
+      map((res: GetFollowAPIResponse) => {
         return res;
       }),
       catchError((e) => {
-        throw new HttpException(e.response.data, e.response.status_code);
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async userFollowingFeed(id: string): Promise<any> {
+    const global = this.getStreamService.getClient().feed('timeline', id);
+    return from(
+      global.following({
+        limit: 10,
+      }),
+    ).pipe(
+      map((res: GetFollowAPIResponse) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async follow(userID: string, targetUserId: string): Promise<any> {
+    const feed = this.getStreamService.getClient().feed('timeline', userID);
+    return from(feed.follow('user', targetUserId)).pipe(
+      map((res: APIResponse) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async unFollow(userID: string, targetUserId: string): Promise<any> {
+    const feed = this.getStreamService.getClient().feed('timeline', userID);
+    return from(feed.unfollow('user', targetUserId)).pipe(
+      map((res: APIResponse) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async followStat(userID: string): Promise<any> {
+    const feed = this.getStreamService.getClient().feed('user', userID);
+    return from(feed.followStats()).pipe(
+      map((res: FollowStatsAPIResponse) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
       }),
     );
   }

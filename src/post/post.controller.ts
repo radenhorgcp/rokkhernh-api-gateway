@@ -120,6 +120,13 @@ export class PostController {
     return this.postService.userPosts(user.uid);
   }
 
+  @Get('/followingPosts')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async followingPosts(@CurrentUser() user: DecodedIdToken): Promise<any> {
+    return this.postService.followingPosts(user.uid);
+  }
+
   @Delete('/posts/:id')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)
@@ -130,9 +137,44 @@ export class PostController {
     return this.postService.deletePostById(id, user.uid);
   }
 
-  @Get('/searchPosts')
+  @Post('/post/follow')
+  @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)
-  async searchPosts(@Body() body: any): Promise<any> {
-    return this.postService.searchPosts(body);
+  async followPost(
+    @Body() body: { targetUserId: string },
+    @CurrentUser() user: DecodedIdToken,
+  ): Promise<any> {
+    return this.postService.follow(user.uid, body.targetUserId);
+  }
+
+  @Post('/post/unFollow')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async unFollowPost(
+    @Body() body: { targetUserId: string },
+    @CurrentUser() user: DecodedIdToken,
+  ): Promise<any> {
+    return this.postService.unFollow(user.uid, body.targetUserId);
+  }
+
+  @Get('/userFollowerFeed')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async userFollowerFeed(@CurrentUser() user: DecodedIdToken): Promise<any> {
+    return this.postService.userFollowerFeed(user.uid);
+  }
+
+  @Get('/userFollowingFeed')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async userFollowingFeed(@CurrentUser() user: DecodedIdToken): Promise<any> {
+    return this.postService.userFollowingFeed(user.uid);
+  }
+
+  @Get('/followStat')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async followStat(@CurrentUser() user: DecodedIdToken): Promise<any> {
+    return this.postService.followStat(user.uid);
   }
 }
