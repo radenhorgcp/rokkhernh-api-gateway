@@ -13,6 +13,7 @@ import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 import { FirebaseGuard } from 'src/auth/firebase.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { TransformInterceptor } from 'src/decorator/transform.decorator';
+import { UpdateUserDto } from './dto/updare-user-dto';
 
 @Controller()
 export class UserController {
@@ -40,10 +41,27 @@ export class UserController {
     return this.userService.registerUser(body);
   }
 
+  @Post('/updateUser')
+  @UseInterceptors(TransformInterceptor)
+  @UseGuards(FirebaseGuard)
+  async update(
+    @CurrentUser() user: DecodedIdToken,
+    @Body() body: UpdateUserDto,
+  ): Promise<any> {
+    return this.userService.updateUser(user.uid, body);
+  }
+
   @Get('/me')
   @UseInterceptors(TransformInterceptor)
   @UseGuards(FirebaseGuard)
   async meV2(@CurrentUser() user: DecodedIdToken): Promise<any> {
     return this.userService.me(user.uid);
+  }
+
+  @Get('/followStat')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async followStat(@CurrentUser() user: DecodedIdToken): Promise<any> {
+    return this.userService.followStat(user.uid);
   }
 }

@@ -223,6 +223,40 @@ export class PostService {
     );
   }
 
+  async getCommentPost(id: string): Promise<any> {
+    return from(
+      this.getStreamService.getClient().reactions.filter({
+        activity_id: id,
+        kind: 'comment',
+        limit: 1000,
+      }),
+    ).pipe(
+      map((res: ReactionFilterAPIResponse<DefaultGenerics>) => {
+        return res.results;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async getLikePost(id: string): Promise<any> {
+    return from(
+      this.getStreamService.getClient().reactions.filter({
+        activity_id: id,
+        kind: 'like',
+        limit: 1000,
+      }),
+    ).pipe(
+      map((res: ReactionFilterAPIResponse<DefaultGenerics>) => {
+        return res.results;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
   async commentPost(id: string, userId: string, body: any): Promise<any> {
     return from(
       this.getStreamService.getClient().reactions.add('comment', id, body, {
@@ -348,10 +382,16 @@ export class PostService {
     );
   }
 
-  async followStat(userID: string): Promise<any> {
-    const feed = this.getStreamService.getClient().feed('user', userID);
-    return from(feed.followStats()).pipe(
-      map((res: FollowStatsAPIResponse) => {
+  async sharePost(activityId: string, body: any, userId: string): Promise<any> {
+    return from(
+      this.getStreamService
+        .getClient()
+        .reactions.add('share', activityId, body, {
+          userId,
+          targetFeeds: [`timeline:${userId}`, `flat:global`],
+        }),
+    ).pipe(
+      map((res: any) => {
         return res;
       }),
       catchError((e) => {

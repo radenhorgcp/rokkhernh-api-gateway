@@ -102,6 +102,18 @@ export class PostController {
     return this.postService.likePost(id, user);
   }
 
+  @Get('/post/like/:id')
+  @UseInterceptors(TransformInterceptor)
+  async getLikePost(@Param('id') id): Promise<any> {
+    return this.postService.getLikePost(id);
+  }
+
+  @Get('/post/comment/:id')
+  @UseInterceptors(TransformInterceptor)
+  async getCommentPost(@Param('id') id): Promise<any> {
+    return this.postService.getCommentPost(id);
+  }
+
   @Post('/post/comment/:id')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)
@@ -171,10 +183,14 @@ export class PostController {
     return this.postService.userFollowingFeed(user.uid);
   }
 
-  @Get('/followStat')
+  @Post('/post/share/:id')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)
-  async followStat(@CurrentUser() user: DecodedIdToken): Promise<any> {
-    return this.postService.followStat(user.uid);
+  async sharePost(
+    @Param('id') id,
+    @Body() body: any,
+    @CurrentUser() user: DecodedIdToken,
+  ): Promise<any> {
+    return this.postService.sharePost(id, body, user.uid);
   }
 }

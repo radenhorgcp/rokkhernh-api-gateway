@@ -6,8 +6,9 @@ import * as admin from 'firebase-admin';
 import { CreateRequest } from 'firebase-admin/lib/auth/auth-config';
 import { GetStreamService } from 'src/getstream/getstream.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { DefaultGenerics, StreamUser } from 'getstream';
+import { DefaultGenerics, FollowStatsAPIResponse, StreamUser } from 'getstream';
 import { IndexType, SearchService } from 'src/search/search.service';
+import { UpdateUserDto } from './dto/updare-user-dto';
 
 @Injectable()
 export class UserService {
@@ -113,6 +114,38 @@ export class UserService {
     return from(this.getStreamService.getClient().user(id).get()).pipe(
       map((user: StreamUser<DefaultGenerics>) => {
         return user.data;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async updateUser(id: string, update: UpdateUserDto): Promise<any> {
+    return from(this.getStreamService.getClient().user(id).get()).pipe(
+      concatMap((res: StreamUser<DefaultGenerics>) => {
+        return from(
+          this.getStreamService
+            .getClient()
+            .user(id)
+            .update({ ...res.data, ...update }),
+        ).pipe(
+          map((user: StreamUser<DefaultGenerics>) => {
+            return user.data;
+          }),
+          catchError((e) => {
+            throw new HttpException(e.response.data, e.response.status);
+          }),
+        );
+      }),
+    );
+  }
+
+  async followStat(userID: string): Promise<any> {
+    const feed = this.getStreamService.getClient().feed('user', userID);
+    return from(feed.followStats()).pipe(
+      map((res: FollowStatsAPIResponse) => {
+        return res;
       }),
       catchError((e) => {
         throw new HttpException(e.response.data, e.response.status);
