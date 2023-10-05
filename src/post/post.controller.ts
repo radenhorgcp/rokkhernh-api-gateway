@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -67,8 +68,9 @@ export class PostController {
 
   @Get('/posts')
   @UseInterceptors(TransformInterceptor)
-  async posts(): Promise<any> {
-    return this.postService.posts();
+  async posts(@Query() query): Promise<any> {
+    const { idLt = '', limit = 10 } = query;
+    return this.postService.posts(idLt, limit);
   }
 
   @Post('/post')

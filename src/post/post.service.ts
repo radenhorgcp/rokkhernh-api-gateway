@@ -108,11 +108,12 @@ export class PostService {
       );
   }
 
-  async posts(): Promise<any> {
+  async posts(idLt = '', limit = 10): Promise<any> {
     const global = this.getStreamService.getClient().feed('flat', 'global');
     return from(
       global.get({
-        limit: 10,
+        limit: limit,
+        id_lt: idLt,
         withReactionCounts: true,
         withRecentReactions: true,
         withOwnReactions: true,
