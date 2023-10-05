@@ -12,4 +12,11 @@ export class SearchController {
     const { s } = query;
     return this.searchService.search(s);
   }
+
+  @Get('/autoComplete')
+  @UseInterceptors(TransformInterceptor)
+  async searchAutoComplete(@Query() query): Promise<any> {
+    const { s } = query;
+    return this.searchService.searchAutoComplete(s);
+  }
 }

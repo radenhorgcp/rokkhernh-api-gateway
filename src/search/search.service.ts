@@ -60,6 +60,13 @@ export class SearchService {
                       analyzer: 'autocomplete_analyzer',
                       search_analyzer: 'autocomplete_search_analyzer',
                     },
+                    suggest: {
+                      type: 'completion',
+                      analyzer: 'simple',
+                      preserve_separators: true,
+                      preserve_position_increments: true,
+                      max_input_length: 50,
+                    },
                   },
                 },
                 actor: {
@@ -69,6 +76,13 @@ export class SearchService {
                       type: 'text',
                       analyzer: 'autocomplete_analyzer',
                       search_analyzer: 'autocomplete_search_analyzer',
+                    },
+                    suggest: {
+                      type: 'completion',
+                      analyzer: 'simple',
+                      preserve_separators: true,
+                      preserve_position_increments: true,
+                      max_input_length: 50,
                     },
                   },
                 },
@@ -121,6 +135,34 @@ export class SearchService {
           },
         },
       },
+    });
+    const hits = body.hits.hits;
+    hits.map((item) => {
+      results.push(item._source);
+    });
+
+    return { results, total: body.hits.total };
+  }
+
+  async searchAutoComplete(search: string) {
+    const results = [];
+    const suggestQuery = {
+      size: 10,
+      query: {
+        wildcard: {
+          'title.complete': `${search}*`,
+        },
+      },
+      suggest: {
+        gotsuggest: {
+          text: search,
+          term: { field: 'title.complete' },
+        },
+      },
+    };
+    const body = await this.esService.search({
+      index: (appConfig() as AppConfig).elasticSearchIndex,
+      body: suggestQuery,
     });
     const hits = body.hits.hits;
     hits.map((item) => {

@@ -64,4 +64,10 @@ export class UserController {
   async followStat(@CurrentUser() user: DecodedIdToken): Promise<any> {
     return this.userService.followStat(user.uid);
   }
+
+  @Get('/followUserStat/:id')
+  @UseInterceptors(TransformInterceptor)
+  async followStatUser(@Param('id') id): Promise<any> {
+    return this.userService.followStat(id);
+  }
 }
