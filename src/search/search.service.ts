@@ -141,7 +141,7 @@ export class SearchService {
       results.push(item._source);
     });
 
-    return { results, total: body.hits.total };
+    return results;
   }
 
   async searchAutoComplete(search: string) {
