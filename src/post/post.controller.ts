@@ -84,7 +84,7 @@ export class PostController {
   }
 
   @Post('/postImage')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('filename'))
   @UseInterceptors(TransformInterceptor)
   @UseGuards(FirebaseGuard)
   async imagePost(
