@@ -161,6 +161,23 @@ export class PostService {
       );
   }
 
+  async deleteImage() {
+    return from(
+      this.getStreamService
+        .getClient()
+        .images.delete(
+          'https://singapore.stream-io-cdn.com/1254992/images/c0572875-47cd-4b2f-b82c-2559ef4a60cb.fn-2019-09-26-10-24-12-0.jpg?Key-Pair-Id=APKAIHG36VEWPDULE23Q&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9zaW5nYXBvcmUuc3RyZWFtLWlvLWNkbi5jb20vMTI1NDk5Mi9pbWFnZXMvYzA1NzI4NzUtNDdjZC00YjJmLWI4MmMtMjU1OWVmNGE2MGNiLmZuLTIwMTktMDktMjYtMTAtMjQtMTItMC5qcGc~Km9oPTk2MCpvdz05NjAqIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNjk3ODczODczfX19XX0_&Signature=RvOK~98YHH1a5A5jtc7U3oZinkzS8TIeprcX8YFEh~-SpTuqxh6ec8kmG3jPIcBX3wkbDuL9QGsGqdUgKJFmmesD4Cnb5vy-rjDsbHjClN56rYYMQKHeHkD5QzT4aSNLRxc5jtiCJ9rw8US8T9EB8wxsg5H3Y~doEJFGIHKTt7EMWBtxYNNPJ-ylaiwwgNuQrqL8E~iitQoj0p3v-los1b749rKf~neOeG-pFJjmC0VjoApJalnkbkqSxciOTHnr1uJfzPpvSz~AvW8JfcvgUUiSgtoXmLHVPCR8b0r0~QEnBPGkqAgkjRbLLvdibiebOXJ6g0SPVJKyNaQLGJoZBA__&oh=960&ow=960',
+        ),
+    ).pipe(
+      map((res: any) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
   async createPosts(id: string, req: any): Promise<any> {
     const user = this.getStreamService.getClient().user(id);
     const global = this.getStreamService.getClient().feed('user', id);
@@ -289,11 +306,12 @@ export class PostService {
     );
   }
 
-  async userPosts(id: string): Promise<any> {
+  async userPosts(id: string, idLt = '', limit = 10): Promise<any> {
     const global = this.getStreamService.getClient().feed('user', id);
     return from(
       global.get({
-        limit: 10,
+        limit: limit,
+        id_lt: idLt,
         withReactionCounts: true,
         withRecentReactions: true,
         withOwnReactions: true,

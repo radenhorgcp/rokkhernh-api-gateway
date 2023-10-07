@@ -94,6 +94,12 @@ export class PostController {
     return this.postService.createImagePost(file, user);
   }
 
+  @Delete('/deleteFile')
+  @UseInterceptors(TransformInterceptor)
+  async deleteImage(): Promise<any> {
+    return this.postService.deleteImage();
+  }
+
   @Post('/post/like/:id')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)
@@ -130,8 +136,19 @@ export class PostController {
   @Get('/userPosts')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)
-  async userPosts(@CurrentUser() user: DecodedIdToken): Promise<any> {
-    return this.postService.userPosts(user.uid);
+  async userPosts(
+    @CurrentUser() user: DecodedIdToken,
+    @Query() query,
+  ): Promise<any> {
+    const { idLt = '', limit = 10 } = query;
+    return this.postService.userPosts(user.uid, idLt, limit);
+  }
+
+  @Get('/userPosts/:id')
+  @UseInterceptors(TransformInterceptor)
+  async userPostsById(@Query() query, @Param('id') id): Promise<any> {
+    const { idLt = '', limit = 10 } = query;
+    return this.postService.userPosts(id, idLt, limit);
   }
 
   @Get('/followingPosts')
