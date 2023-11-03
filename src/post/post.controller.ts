@@ -73,6 +73,13 @@ export class PostController {
     return this.postService.posts(idLt, limit);
   }
 
+  @Get('/posts/:target')
+  @UseInterceptors(TransformInterceptor)
+  async postsByTarget(@Param('target') target, @Query() query): Promise<any> {
+    const { idLt = '', limit = 10 } = query;
+    return this.postService.postsByTarget(idLt, limit, target);
+  }
+
   @Post('/post')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(TransformInterceptor)

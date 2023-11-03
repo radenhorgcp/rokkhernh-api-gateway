@@ -128,6 +128,26 @@ export class PostService {
     );
   }
 
+  async postsByTarget(idLt = '', limit = 10, target: string): Promise<any> {
+    const global = this.getStreamService.getClient().feed('flat', target);
+    return from(
+      global.get({
+        limit: limit,
+        id_lt: idLt,
+        withReactionCounts: true,
+        withRecentReactions: true,
+        withOwnReactions: true,
+      }),
+    ).pipe(
+      map((res: FeedAPIResponse<DefaultGenerics>) => {
+        return res.results;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
   async createImagePost(
     file: Express.Multer.File,
     user: DecodedIdToken,
@@ -181,12 +201,13 @@ export class PostService {
   async createPosts(id: string, req: any): Promise<any> {
     const user = this.getStreamService.getClient().user(id);
     const global = this.getStreamService.getClient().feed('user', id);
+    const targetFeed = req.targetFeed;
     return from(
       global.addActivity({
         actor: user,
         verb: 'add',
         foreign_id: id,
-        to: ['flat:global'],
+        to: ['flat:global', `flat:${targetFeed}`],
         ...req,
       }),
     ).pipe(
