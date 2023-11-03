@@ -69,8 +69,8 @@ export class PostController {
   @Get('/posts')
   @UseInterceptors(TransformInterceptor)
   async posts(@Query() query): Promise<any> {
-    const { idLt = '', limit = 10 } = query;
-    return this.postService.posts(idLt, limit);
+    const { idLt = '', limit = 10, target = 'global' } = query;
+    return this.postService.posts(idLt, limit, target);
   }
 
   @Get('/posts/:target')

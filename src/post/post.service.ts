@@ -108,8 +108,10 @@ export class PostService {
       );
   }
 
-  async posts(idLt = '', limit = 10): Promise<any> {
-    const global = this.getStreamService.getClient().feed('flat', 'global');
+  async posts(idLt = '', limit = 10, target = 'global'): Promise<any> {
+    const global = this.getStreamService
+      .getClient()
+      .feed('flat', target || 'global');
     return from(
       global.get({
         limit: limit,
