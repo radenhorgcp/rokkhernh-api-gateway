@@ -76,9 +76,9 @@ export class UserService {
       email: req.email,
     };
     if (req.provider == 'google') {
-      payload.providerToLink.providerId = 'google.com';
+      // payload.providerToLink.providerId = 'google.com';
     } else if (req.provider == 'facebook') {
-      payload.providerToLink.providerId = 'facebook.com';
+      // payload.providerToLink.providerId = 'facebook.com';
     } else {
       payload.password = req.password;
     }
