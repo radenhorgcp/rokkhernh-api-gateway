@@ -77,7 +77,37 @@ export class UserService {
     };
     if (req.provider == 'google') {
       // payload.providerToLink.providerId = 'google.com';
+      return from(
+        this.getStreamService
+          .getClient()
+          .user(req.username)
+          .getOrCreate(req as any),
+      ).pipe(
+        map((user: StreamUser<DefaultGenerics>) => {
+          this.esService.createIndex(user, IndexType.USER);
+          return user.data;
+        }),
+        catchError((e) => {
+          console.log(e.response.status);
+          throw new HttpException(e.response.data, e.response.status);
+        }),
+      );
     } else if (req.provider == 'facebook') {
+      return from(
+        this.getStreamService
+          .getClient()
+          .user(req.username)
+          .getOrCreate(req as any),
+      ).pipe(
+        map((user: StreamUser<DefaultGenerics>) => {
+          this.esService.createIndex(user, IndexType.USER);
+          return user.data;
+        }),
+        catchError((e) => {
+          console.log(e.response.status);
+          throw new HttpException(e.response.data, e.response.status);
+        }),
+      );
       // payload.providerToLink.providerId = 'facebook.com';
     } else {
       payload.password = req.password;
