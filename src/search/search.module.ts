@@ -4,6 +4,9 @@ import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import appConfig from 'src/config/app.config';
 import { AppConfig } from 'src/config/config.type';
 import { SearchController } from './search.controller';
+import { HttpModule } from '@nestjs/axios';
+import { FirebaseGuard } from 'src/auth/firebase.guard';
+import { GetStreamModule } from 'src/getstream/getstream.module';
 
 @Module({
   imports: [
@@ -20,6 +23,8 @@ import { SearchController } from './search.controller';
         },
       }),
     }),
+    HttpModule,
+    GetStreamModule,
   ],
   providers: [SearchService, SearchController, ElasticsearchModule],
   exports: [SearchService, SearchController],

@@ -1,6 +1,13 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { TransformInterceptor } from 'src/decorator/transform.decorator';
 import { SearchService } from './search.service';
+import { FirebaseGuard } from 'src/auth/firebase.guard';
 
 @Controller()
 export class SearchController {
@@ -11,6 +18,14 @@ export class SearchController {
   async searchPosts(@Query() query): Promise<any> {
     const { s } = query;
     return this.searchService.search(s);
+  }
+
+  @Get('/forwardGeocoding')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async forwardGeocoding(@Query() query): Promise<any> {
+    const { q } = query;
+    return this.searchService.forwardGeocoding(q);
   }
 
   @Get('/autoComplete')

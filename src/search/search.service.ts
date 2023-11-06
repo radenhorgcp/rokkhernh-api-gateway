@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { AxiosResponse } from 'axios';
 import { Activity, DefaultGenerics, StreamUser } from 'getstream';
+import { catchError, map } from 'rxjs';
 import appConfig from 'src/config/app.config';
 import { AppConfig } from 'src/config/config.type';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,7 +15,10 @@ export enum IndexType {
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly esService: ElasticsearchService) {}
+  constructor(
+    private readonly esService: ElasticsearchService,
+    private readonly httpService: HttpService,
+  ) {}
 
   async createIndex(
     data: Activity<DefaultGenerics> | StreamUser<DefaultGenerics>,
@@ -209,5 +215,20 @@ export class SearchService {
       obj,
     );
     return body;
+  }
+
+  async forwardGeocoding(q: string) {
+    return this.httpService
+      .get(
+        `https://us1.locationiq.com/v1/search?q=${q}&key=pk.b28f907cfda14c35302fb395a3fe2151&format=json`,
+      )
+      .pipe(
+        map((axiosResponse: AxiosResponse) => {
+          return axiosResponse.data;
+        }),
+        catchError((e) => {
+          throw new HttpException(e.response.data, e.response.status);
+        }),
+      );
   }
 }
