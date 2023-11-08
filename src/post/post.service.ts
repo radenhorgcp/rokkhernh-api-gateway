@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
-import { Observable, map, catchError, concatMap, from } from 'rxjs';
+import { Observable, map, catchError, concatMap, from, async } from 'rxjs';
 import { GetStreamService } from 'src/getstream/getstream.service';
 import appConfig from 'src/config/app.config';
 import { AppConfig } from 'src/config/config.type';
@@ -11,11 +11,11 @@ import {
   Activity,
   DefaultGenerics,
   FeedAPIResponse,
-  FollowStatsAPIResponse,
   GetFollowAPIResponse,
   ReactionFilterAPIResponse,
 } from 'getstream';
 import { IndexType, SearchService } from 'src/search/search.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PostService {
@@ -204,18 +204,92 @@ export class PostService {
     const user = this.getStreamService.getClient().user(id);
     const global = this.getStreamService.getClient().feed('user', id);
     const targetFeed = req.targetFeed;
+    const fId = `${id}_${uuidv4()}`;
+    const date = new Date();
     return from(
       global.addActivity({
         actor: user,
         verb: 'add',
-        foreign_id: id,
+        time: date,
+        foreign_id: fId,
         to: ['flat:global', `flat:${targetFeed}`],
         ...req,
       }),
     ).pipe(
       map((res: Activity<DefaultGenerics>) => {
-        this.esService.createIndex(res, IndexType.ACTIVITY);
         return res;
+      }),
+      // concatMap((res: Activity<DefaultGenerics>) => {
+      //   return from(
+      //     global.updateActivityToTargets(res.foreign_id, `${res.time}`, [
+      //       'flat:global',
+      //       `flat:${targetFeed}`,
+      //     ]),
+      //   ).pipe(
+      //     map((updateRes: APIResponse) => {
+      //       this.esService.createIndex(res, IndexType.ACTIVITY);
+      //       return updateRes;
+      //     }),
+      //     catchError((e) => {
+      //       throw new HttpException(e.response.data, e.response.status);
+      //     }),
+      //   );
+      // }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async savePost(userId: string, postId: string, time: string): Promise<any> {
+    const global = this.getStreamService.getClient().feed('flat', 'global');
+    return from(
+      global.updateActivityToTargets(postId, time, null, [
+        `user_save:${userId}`,
+      ]),
+    ).pipe(
+      map((res: APIResponse) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async removeSavePost(
+    userId: string,
+    postId: string,
+    time: string,
+  ): Promise<any> {
+    const global = this.getStreamService.getClient().feed('flat', 'global');
+    return from(
+      global.updateActivityToTargets(postId, time, null, null, [
+        `user_save:${userId}`,
+      ]),
+    ).pipe(
+      map((res: APIResponse) => {
+        return res;
+      }),
+      catchError((e) => {
+        throw new HttpException(e.response.data, e.response.status);
+      }),
+    );
+  }
+
+  async getSavePost(userId: string, idLt = '', limit = 10): Promise<any> {
+    const global = this.getStreamService.getClient().feed('user_save', userId);
+    return from(
+      global.get({
+        limit: limit,
+        id_lt: idLt,
+        withReactionCounts: true,
+        withRecentReactions: true,
+        withOwnReactions: true,
+      }),
+    ).pipe(
+      map((res: FeedAPIResponse<DefaultGenerics>) => {
+        return res.results;
       }),
       catchError((e) => {
         throw new HttpException(e.response.data, e.response.status);

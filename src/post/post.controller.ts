@@ -219,4 +219,37 @@ export class PostController {
   ): Promise<any> {
     return this.postService.sharePost(id, body, user.uid);
   }
+
+  @Post('/savePost')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async savePost(
+    @Query() query,
+    @CurrentUser() user: DecodedIdToken,
+  ): Promise<any> {
+    const { id, time } = query;
+    return this.postService.savePost(user.uid, id, time);
+  }
+
+  @Post('/removeSavePost')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async removeSavePost(
+    @Query() query,
+    @CurrentUser() user: DecodedIdToken,
+  ): Promise<any> {
+    const { id, time } = query;
+    return this.postService.removeSavePost(user.uid, id, time);
+  }
+
+  @Get('/savePost')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(TransformInterceptor)
+  async getSavePost(
+    @CurrentUser() user: DecodedIdToken,
+    @Query() query,
+  ): Promise<any> {
+    const { idLt = '', limit = 10 } = query;
+    return this.postService.getSavePost(user.uid, idLt, limit);
+  }
 }
